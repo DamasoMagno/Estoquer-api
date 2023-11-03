@@ -4,13 +4,13 @@ import { Knex } from "knex";
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable("order", (table) => {
     table.increments("id").primary(),
-    table.text("title"),
-    table.text("origin"),
-    table.text("category"),
-    table.boolean("finished"),
-    table.dateTime("created_at"),
-    table.dateTime("dealine"),
-    table.text("user_id"),
+    table.text("title").notNullable(),
+    table.enu('origin', ['Supplier', 'Client']).notNullable(),
+    table.enu('category', ['Input', 'Output']).notNullable(),
+    table.boolean("finished").defaultTo(false),
+    table.date("dealine"),
+    table.date("created_at").defaultTo(knex.fn.now()),
+    table.integer("user_id"),
     table.foreign("user_id").references("user.id")
   })
 }
