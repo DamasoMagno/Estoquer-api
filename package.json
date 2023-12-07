@@ -1,7 +1,6 @@
 {
   "name": "estoquer",
   "version": "1.0.0",
-  "description": "- [ ] Usuario deve poder criar uma conta\r - [ ] Usuario deve poder fazer login\r - [ ] Usuario deve poder cadastrar um pedido\r - [ ] Usuario pode visualizar todos os pedidos\r - [ ] Usuario pode visualiazr os itens por filtro\r   - [ ] Titulo\r   - [ ] Categoria\r - [ ] Usuario deve poder editar um pedido\r - [ ] Usuario deve poder remover um pedido\r - [ ] Usuario deve cadastrar os seguintes campos em cada pedido\r   - [ ] Prazo pagamento\r   - [ ] Titulo\r   - [ ] Origem: Fornecedor | Cliente\r   - [ ] Tipo: Entrada | Saída\r   - [ ] Status: Pendente | Finalizado\r - [ ] Usuario deve poder cadastrar os itens do pedido com os campos\r   - [ ] Nome\r   - [ ] Preço\r   - [ ] Quantidade",
   "main": "index.js",
   "scripts": {
     "dev": "tsx watch src/app.ts",
