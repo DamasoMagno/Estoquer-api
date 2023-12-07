@@ -57,8 +57,8 @@ This project is an API developed as a complement to a basic inventory control sy
   title       Text
   finished    Boolean
   origin      TEXT ("Supplier", "Client")
-  category    TEXT ("Input", "Output")
-  created_at  Date
+  type        TEXT ("Input", "Output")
+  created_at  Date NOW
   deadline    Date
   user_id     Integer   Foreign Key
 
