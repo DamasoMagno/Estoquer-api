@@ -18,12 +18,12 @@ model Order {
   id         String      @id @default(uuid())
   title      String
   origin     String
-  category   String
+  type       String
   user_id    String
   finished   Boolean     @default(false)
+  deadline   DateTime
   created_at DateTime    @default(now())
   updated_at DateTime    @updatedAt
-  deadline   DateTime?
   items      OrderItem[]
 
   user User @relation(fields: [user_id], references: [id])

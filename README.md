@@ -10,15 +10,15 @@ This project is an API developed as a complement to a basic inventory control sy
 - [ ] Users can view all orders.
 - [ ] Users can view items by filter:
   - [ ] Title
-  - [ ] Category
+  - [ ] Type
 - [ ] Users should be able to edit an order.
 - [ ] Users should be able to remove an order.
 - [ ] Users should register the following fields for each order:
-  - [ ] Payment deadline
   - [ ] Title
   - [ ] Origin: Supplier | Customer
   - [ ] Type: Input | Output
   - [ ] Status: Pending | Completed
+  - [ ] Payment deadline
 - [ ] Users should be able to register order items with the following fields:
   - [ ] Name
   - [ ] Price
@@ -33,14 +33,14 @@ This project is an API developed as a complement to a basic inventory control sy
   - [ ] Password must be 6 characters or more.
 - [ ] Users cannot make updates to an order if it has been completed.
 - [ ] If the order origin is Customer, the user must fill in the type as Output.
-- [ ] If the payment deadline has passed, the user should see those orders first.
+- [ ] If the payment deadline has passed, the user should see those orders last.
 
 ## Technologies
 
 - Node.js
 - Fastify
 - Prisma
-- Supabase
+- PlanetScale
 - Sqlite (Development Database)
 - Zod
 

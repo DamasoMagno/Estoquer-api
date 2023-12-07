@@ -1,23 +1,26 @@
 import { FastifyInstance } from "fastify";
+
 import { z } from "zod";
 
 import prisma from "../prisma";
+import { AuthenticateUser } from "../middlewares/Authenticate";
 
 export async function OrderController(app: FastifyInstance) {
+  app.addHook("preHandler", AuthenticateUser);
+
+  // /order
   app.post("/", async (req, res) => {
     const orderSchemaBody = z.object({
       title: z.string(),
       origin: z.enum(["Supplier", "Client"]),
-      category: z.enum(["Input", "Output"]),
-      user_id: z.string(),
-      deadline: z.date(),
+      type: z.enum(["Input", "Output"]),
+      deadline: z.date().optional(),
     });
 
     try {
-      const { title, category, origin, deadline, user_id } =
-        orderSchemaBody.parse(req.body);
+      const { title, type, origin, deadline } = orderSchemaBody.parse(req.body);
 
-      if (origin === "Supplier" && category !== "Input") {
+      if (origin === "Supplier" && type !== "Input") {
         return res
           .status(500)
           .send({ error: "Category or Origin is incorrect" });
@@ -26,27 +29,29 @@ export async function OrderController(app: FastifyInstance) {
       await prisma.order.create({
         data: {
           title,
-          category,
+          type,
           origin,
-          user_id,
-          deadline,
+          user_id: req.user.id,
+          deadline: deadline ? deadline : new Date(),
         },
       });
 
-      return res.status(201).send({});
+      return res.status(201).send();
     } catch (error) {
       return res.status(500).send(error);
     }
   });
 
+  // /order/:orderId
   app.patch("/:orderId", async (req, res) => {
     const orderSchemaBody = z.object({
       title: z.string().optional(),
       origin: z.enum(["Supplier", "Client"]).optional(),
       category: z.enum(["Input", "Output"]).optional(),
-      user_id: z.string().uuid(),
       deadline: z.date().optional(),
+      finished: z.boolean().optional(),
     });
+
     const orderIdSchema = z.object({
       orderId: z.string(),
     });
@@ -61,21 +66,30 @@ export async function OrderController(app: FastifyInstance) {
           .send({ error: "Category or Origin is incorrect" });
       }
 
+      const orderIsFinished = await prisma.order.findUnique({
+        where: {
+          id: orderId,
+        },
+      });
+
+      if (orderIsFinished?.finished) {
+        return res.status(500).send({ error: "This order finished" });
+      }
+
       await prisma.order.update({
         where: {
           id: orderId,
         },
-        data: {
-          ...order,
-        },
+        data: order,
       });
 
-      return res.status(201).send({});
+      return res.status(204).send();
     } catch (error) {
       return res.status(500).send(error);
     }
   });
 
+  // /order/:orderId
   app.delete("/:orderId", async (req, res) => {
     const orderIdSchema = z.object({
       orderId: z.string().uuid(),
@@ -90,15 +104,77 @@ export async function OrderController(app: FastifyInstance) {
         },
       });
 
-      return res.status(201).send({});
+      return res.status(204).send();
     } catch (error) {
       return res.status(500).send(error);
     }
   });
 
-  app.get("/order", async () => {
-    const orders = await prisma.order.findMany();
+  // /order/orders = Orders
+  app.get("/orders", async (req, res) => {
+    const orderFiltersSchema = z.object({
+      title: z.string().optional(),
+      type: z.enum(["Input", "Output"]).optional(),
+    });
 
-    return orders;
+    try {
+      const { title, type } = orderFiltersSchema.parse(req.query);
+
+      const orders = await prisma.order.findMany({
+        where: {
+          user_id: req.user.id,
+          title,
+          type,
+        },
+        orderBy: {
+          finished: "asc",
+        },
+        include: {
+          items: {
+            select: {
+              id: true,
+              name: true,
+              price: true,
+              quantity: true,
+            },
+          },
+        },
+      });
+
+      return orders;
+    } catch (error) {
+      return res.status(500).send(error);
+    }
+  });
+
+  // /order/:orderId = Order
+  app.get("/:orderId", async (req, res) => {
+    const orderIdSchema = z.object({
+      orderId: z.string().uuid(),
+    });
+
+    try {
+      const { orderId } = orderIdSchema.parse(req.params);
+
+      const orders = await prisma.order.findMany({
+        where: {
+          id: orderId,
+        },
+        include: {
+          items: {
+            select: {
+              id: true,
+              name: true,
+              price: true,
+              quantity: true,
+            },
+          },
+        },
+      });
+
+      return orders;
+    } catch (error) {
+      return res.status(500).send(error);
+    }
   });
 }

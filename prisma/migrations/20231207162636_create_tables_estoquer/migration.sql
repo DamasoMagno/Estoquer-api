@@ -10,11 +10,12 @@ CREATE TABLE "Order" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "title" TEXT NOT NULL,
     "origin" TEXT NOT NULL,
-    "category" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
-    "finished" BOOLEAN NOT NULL,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "finished" BOOLEAN NOT NULL DEFAULT false,
     "deadline" DATETIME NOT NULL,
+    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" DATETIME NOT NULL,
     CONSTRAINT "Order_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
