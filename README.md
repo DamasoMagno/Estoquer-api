@@ -1,9 +1,9 @@
 # Requisitos Funcionais
 
-- [ ] Usuario deve poder criar uma conta
+- [ X ] Usuario deve poder criar uma conta
 - [ ] Usuario deve poder fazer login
-- [ ] Usuario deve poder cadastrar um pedido
-- [ ] Usuario pode visualizar todos os pedidos
+- [ X ] Usuario deve poder cadastrar um pedido
+- [ X ] Usuario pode visualizar todos os pedidos
 - [ ] Usuario pode visualiazr os itens por filtro
   - [ ] Titulo
   - [ ] Categoria
@@ -36,7 +36,6 @@
 ```sql
 - user
   id          Integer   Primary Key
-  name        Text
   email       Text
   password    Text
 
