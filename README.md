@@ -1,37 +1,50 @@
-# Requisitos Funcionais
+# About the Project
 
-- [ X ] Usuario deve poder criar uma conta
-- [ ] Usuario deve poder fazer login
-- [ X ] Usuario deve poder cadastrar um pedido
-- [ X ] Usuario pode visualizar todos os pedidos
-- [ ] Usuario pode visualiazr os itens por filtro
-  - [ ] Titulo
-  - [ ] Categoria
-- [ ] Usuario deve poder editar um pedido
-- [ ] Usuario deve poder remover um pedido
-- [ ] Usuario deve cadastrar os seguintes campos em cada pedido
-  - [ ] Prazo pagamento
-  - [ ] Titulo
-  - [ ] Origem: Fornecedor | Cliente
-  - [ ] Tipo: Entrada | Saída
-  - [ ] Status: Pendente | Finalizado
-- [ ] Usuario deve poder cadastrar os itens do pedido com os campos
-  - [ ] Nome
-  - [ ] Preço
-  - [ ] Quantidade
+This project is an API developed as a complement to a basic inventory control system called Estoquer, previously created by the author.
 
-# Regras de Negócio
+## Functional Requirements
 
-- [ ] Usuario não poderá continuar sua autenticação caso haja campos faltando, ou incorretos
-- [ ] Usuario não deverá cadastrar um email já existente no sistema
-- [ ] Usuario deve inserir email & senha válidos
-  - [ ] Email deve conter @
-  - [ ] Senha deve possuir 6 ou mais caracteres
-- [ ] Usuario não poderá fazer atualizações no pedido, caso a mesma tenha sido concluida
-- [ ] Caso a origem do pedido seja Cliente, o usuario deverá preencher o tipo como Saída.
-- [ ] Caso o prazo de pagamento tenha acabado, o usuario deverá visualizar os mesmos pedidos em primeiro
+- [ ] Users should be able to create an account.
+- [ ] Users should be able to log in.
+- [ ] Users should be able to register an order.
+- [ ] Users can view all orders.
+- [ ] Users can view items by filter:
+  - [ ] Title
+  - [ ] Category
+- [ ] Users should be able to edit an order.
+- [ ] Users should be able to remove an order.
+- [ ] Users should register the following fields for each order:
+  - [ ] Payment deadline
+  - [ ] Title
+  - [ ] Origin: Supplier | Customer
+  - [ ] Type: Input | Output
+  - [ ] Status: Pending | Completed
+- [ ] Users should be able to register order items with the following fields:
+  - [ ] Name
+  - [ ] Price
+  - [ ] Quantity
 
-## Tables
+## Business Rules
+
+- [ ] Users cannot proceed with authentication if there are missing or incorrect fields.
+- [ ] Users should not register an email already existing in the system.
+- [ ] Users must enter valid email and password:
+  - [ ] Email must contain "@".
+  - [ ] Password must be 6 characters or more.
+- [ ] Users cannot make updates to an order if it has been completed.
+- [ ] If the order origin is Customer, the user must fill in the type as Output.
+- [ ] If the payment deadline has passed, the user should see those orders first.
+
+## Technologies
+
+- Node.js
+- Fastify
+- Prisma
+- Supabase
+- Sqlite (Development Database)
+- Zod
+
+## Database Tables
 
 ```sql
 - user
