@@ -2,10 +2,12 @@ import { FastifyInstance } from "fastify";
 import { z } from "zod";
 
 import prisma from "../prisma";
-import { compare, hash } from "bcryptjs";
+
+import { createUserService } from "../services/create-user-service";
+import { authenticateUserService } from "../services/authenticate-user-service";
 
 export async function UserController(app: FastifyInstance) {
-  // /user/register
+  // /user/register = Create user
   app.post("/", async (req, res) => {
     const userSchemaBody = z.object({
       email: z.string().email(),
@@ -15,32 +17,18 @@ export async function UserController(app: FastifyInstance) {
     try {
       const { email, password } = userSchemaBody.parse(req.body);
 
-      const userSameEmail = await prisma.user.findFirst({
-        where: {
-          email,
-        },
+      await createUserService({
+        email,
+        password,
       });
 
-      if (userSameEmail) {
-        return res.send("User already exists");
-      }
-
-      const passwordHashed = await hash(password, 6);
-
-      await prisma.user.create({
-        data: {
-          email,
-          password: passwordHashed,
-        },
-      });
-
-      return res.status(201).send("");
+      return res.status(201).send();
     } catch (error) {
       return res.status(500).send(error);
     }
   });
 
-  // /user
+  // /user = Show users
   app.get("/", async () => {
     const users = await prisma.user.findMany({
       include: {
@@ -51,7 +39,7 @@ export async function UserController(app: FastifyInstance) {
     return users;
   });
 
-  // /user/auth
+  // /user/auth = Authenticate user
   app.post("/auth", async (req, res) => {
     const userSchemaBody = z.object({
       email: z.string().email(),
@@ -61,30 +49,12 @@ export async function UserController(app: FastifyInstance) {
     try {
       const { email, password } = userSchemaBody.parse(req.body);
 
-      const userSameEmail = await prisma.user.findFirst({
-        where: {
-          email,
-        },
+      const { id } = await authenticateUserService({
+        email,
+        password,
       });
 
-      if (!userSameEmail) {
-        return res.send("Email/Password incorrect");
-      }
-
-      const passwordIsValid = await compare(password, userSameEmail.password);
-
-      if (!passwordIsValid) {
-        return res.send("Email/Password incorrect");
-      }
-
-      return res.status(201).jwtSign(
-        {
-          id: userSameEmail.id,
-        },
-        {
-          expiresIn: "10m",
-        }
-      );
+      return res.status(201).jwtSign({ id }, { expiresIn: "10m" });
     } catch (error) {
       return res.status(500).send(error);
     }

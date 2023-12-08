@@ -1,39 +1,79 @@
 import { FastifyInstance } from "fastify";
-
 import { z } from "zod";
 
-import prisma from "../prisma";
 import { AuthenticateUser } from "../middlewares/Authenticate";
+import { listOrdersService } from "../services/list-orders-service";
+import { listOrderService } from "../services/list-order-service";
+import { removeOrderService } from "../services/remove-order-service";
+import { createOrderService } from "../services/create-order-service";
+import { updateOrderService } from "../services/update-order-service";
 
 export async function OrderController(app: FastifyInstance) {
   app.addHook("preHandler", AuthenticateUser);
 
-  // /order
+  // /order = List orders
+  app.get("/", async (req, res) => {
+    const { user } = req;
+
+    const orderFiltersSchema = z.object({
+      title: z.string().optional(),
+      type: z.enum(["Input", "Output"]).optional(),
+    });
+
+    try {
+      const { title, type } = orderFiltersSchema.parse(req.query);
+
+      const orders = await listOrdersService({
+        title,
+        type,
+        user_id: user.id,
+      });
+
+      return orders;
+    } catch (error) {
+      return res.status(500).send(error);
+    }
+  });
+
+  // /order/:orderId = Show order
+  app.get("/:orderId", async (req, res) => {
+    const orderIdSchema = z.object({
+      orderId: z.string().uuid(),
+    });
+
+    try {
+      const { orderId } = orderIdSchema.parse(req.params);
+
+      const orders = await listOrderService({
+        order_id: orderId,
+      });
+
+      return orders;
+    } catch (error) {
+      return res.status(500).send(error);
+    }
+  });
+
+  // /order = Create order
   app.post("/", async (req, res) => {
+    const { user } = req;
+
     const orderSchemaBody = z.object({
       title: z.string(),
       origin: z.enum(["Supplier", "Client"]),
       type: z.enum(["Input", "Output"]),
-      deadline: z.date().optional(),
+      deadline: z.string(),
     });
 
     try {
       const { title, type, origin, deadline } = orderSchemaBody.parse(req.body);
 
-      if (origin === "Supplier" && type !== "Input") {
-        return res
-          .status(500)
-          .send({ error: "Category or Origin is incorrect" });
-      }
-
-      await prisma.order.create({
-        data: {
-          title,
-          type,
-          origin,
-          user_id: req.user.id,
-          deadline: deadline ? deadline : new Date(),
-        },
+      await createOrderService({
+        title,
+        deadline,
+        origin,
+        type,
+        user_id: user.id,
       });
 
       return res.status(201).send();
@@ -42,12 +82,12 @@ export async function OrderController(app: FastifyInstance) {
     }
   });
 
-  // /order/:orderId
+  // /order/:orderId = Update order
   app.patch("/:orderId", async (req, res) => {
     const orderSchemaBody = z.object({
       title: z.string().optional(),
       origin: z.enum(["Supplier", "Client"]).optional(),
-      category: z.enum(["Input", "Output"]).optional(),
+      type: z.enum(["Input", "Output"]).optional(),
       deadline: z.date().optional(),
       finished: z.boolean().optional(),
     });
@@ -57,30 +97,18 @@ export async function OrderController(app: FastifyInstance) {
     });
 
     try {
-      const order = orderSchemaBody.parse(req.body);
+      const { type, deadline, finished, origin, title } = orderSchemaBody.parse(
+        req.body
+      );
       const { orderId } = orderIdSchema.parse(req.params);
 
-      if (order.origin === "Supplier" && order.category !== "Input") {
-        return res
-          .status(500)
-          .send({ error: "Category or Origin is incorrect" });
-      }
-
-      const orderIsFinished = await prisma.order.findUnique({
-        where: {
-          id: orderId,
-        },
-      });
-
-      if (orderIsFinished?.finished) {
-        return res.status(500).send({ error: "This order finished" });
-      }
-
-      await prisma.order.update({
-        where: {
-          id: orderId,
-        },
-        data: order,
+      await updateOrderService({
+        type,
+        deadline,
+        finished,
+        origin,
+        title,
+        order_id: orderId,
       });
 
       return res.status(204).send();
@@ -89,7 +117,7 @@ export async function OrderController(app: FastifyInstance) {
     }
   });
 
-  // /order/:orderId
+  // /order/:orderId = Delete order
   app.delete("/:orderId", async (req, res) => {
     const orderIdSchema = z.object({
       orderId: z.string().uuid(),
@@ -98,81 +126,9 @@ export async function OrderController(app: FastifyInstance) {
     try {
       const { orderId } = orderIdSchema.parse(req.params);
 
-      await prisma.order.delete({
-        where: {
-          id: orderId,
-        },
-      });
+      await removeOrderService({ order_id: orderId });
 
       return res.status(204).send();
-    } catch (error) {
-      return res.status(500).send(error);
-    }
-  });
-
-  // /order/orders = Orders
-  app.get("/orders", async (req, res) => {
-    const orderFiltersSchema = z.object({
-      title: z.string().optional(),
-      type: z.enum(["Input", "Output"]).optional(),
-    });
-
-    try {
-      const { title, type } = orderFiltersSchema.parse(req.query);
-
-      const orders = await prisma.order.findMany({
-        where: {
-          user_id: req.user.id,
-          title,
-          type,
-        },
-        orderBy: {
-          finished: "asc",
-        },
-        include: {
-          items: {
-            select: {
-              id: true,
-              name: true,
-              price: true,
-              quantity: true,
-            },
-          },
-        },
-      });
-
-      return orders;
-    } catch (error) {
-      return res.status(500).send(error);
-    }
-  });
-
-  // /order/:orderId = Order
-  app.get("/:orderId", async (req, res) => {
-    const orderIdSchema = z.object({
-      orderId: z.string().uuid(),
-    });
-
-    try {
-      const { orderId } = orderIdSchema.parse(req.params);
-
-      const orders = await prisma.order.findMany({
-        where: {
-          id: orderId,
-        },
-        include: {
-          items: {
-            select: {
-              id: true,
-              name: true,
-              price: true,
-              quantity: true,
-            },
-          },
-        },
-      });
-
-      return orders;
     } catch (error) {
       return res.status(500).send(error);
     }

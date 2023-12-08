@@ -17,7 +17,7 @@ app.register(OrderController, {
 });
 
 app.register(OrderItemController, {
-  prefix: "/orderItem",
+  prefix: "/item",
 });
 
 app.register(UserController, {

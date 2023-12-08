@@ -1,13 +1,55 @@
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
 
-import prisma from "../prisma";
 import { AuthenticateUser } from "../middlewares/Authenticate";
+import { createOrderItemService } from "../services/create-order-item-service";
+import { removeOrderItemService } from "../services/remove-order-item-service";
+import { updateOrderItemService } from "../services/update-order-item-service";
+import { listOrderItemsService } from "../services/list-order-items";
+import { listOrderItemService } from "../services/list-order-item";
 
 export async function OrderItemController(app: FastifyInstance) {
   app.addHook("preHandler", AuthenticateUser);
 
-  // /orderItem
+  // /item/items/orderId = List items of order
+  app.get("/items/:orderId", async (req, res) => {
+    const orderIdSchema = z.object({
+      orderId: z.string().uuid(),
+    });
+
+    try {
+      const { orderId } = orderIdSchema.parse(req.params);
+
+      const orders = await listOrderItemsService({
+        order_id: orderId,
+      });
+
+      return res.status(200).send(orders);
+    } catch (error) {
+      return res.status(500).send(error);
+    }
+  });
+
+  // /item/:itemId = Order
+  app.get("/:itemId", async (req, res) => {
+    const orderIdSchema = z.object({
+      itemId: z.string().uuid(),
+    });
+
+    try {
+      const { itemId } = orderIdSchema.parse(req.params);
+
+      const orderItem = await listOrderItemService({
+        itemId,
+      });
+
+      return res.status(200).send(orderItem);
+    } catch (error) {
+      return res.status(500).send(error);
+    }
+  });
+
+  // /item = Create item
   app.post("/", async (req, res) => {
     const orderItemSchemaBody = z.object({
       name: z.string(),
@@ -23,34 +65,30 @@ export async function OrderItemController(app: FastifyInstance) {
         req.body
       );
 
-      await prisma.orderItem.create({
-        data: {
-          name,
-          price,
-          quantity,
-          order_id,
-        },
+      await createOrderItemService({
+        name,
+        price,
+        quantity,
+        order_id,
       });
 
-      return res.status(201).send({});
+      return res.status(201).send();
     } catch (error) {
       return res.status(500).send(error);
     }
   });
 
-  // /orderItem/::orderItemId
-  app.delete("/:orderItemId", async (req, res) => {
+  // /item/:itemId = Delete item
+  app.delete("/:itemId", async (req, res) => {
     const orderItemIdSchema = z.object({
-      orderItemId: z.string().uuid(),
+      itemId: z.string().uuid(),
     });
 
     try {
-      const { orderItemId } = orderItemIdSchema.parse(req.params);
+      const { itemId } = orderItemIdSchema.parse(req.params);
 
-      await prisma.orderItem.delete({
-        where: {
-          id: orderItemId,
-        },
+      await removeOrderItemService({
+        itemId,
       });
 
       return res.status(204).send();
@@ -59,8 +97,8 @@ export async function OrderItemController(app: FastifyInstance) {
     }
   });
 
-  // /orderItem/::orderItemId
-  app.patch("/:orderItemId", async (req, res) => {
+  // /item/:itemId = Update item
+  app.patch("/:itemId", async (req, res) => {
     const orderItemSchemaBody = z.object({
       name: z.string().optional(),
       price: z.number().optional(),
@@ -71,18 +109,18 @@ export async function OrderItemController(app: FastifyInstance) {
     });
 
     const orderItemIdSchema = z.object({
-      orderItemId: z.string().uuid(),
+      itemId: z.string().uuid(),
     });
 
     try {
-      const orderItem = orderItemSchemaBody.parse(req.body);
-      const { orderItemId } = orderItemIdSchema.parse(req.params);
+      const { name, price, quantity } = orderItemSchemaBody.parse(req.body);
+      const { itemId } = orderItemIdSchema.parse(req.params);
 
-      await prisma.orderItem.update({
-        where: {
-          id: orderItemId,
-        },
-        data: orderItem,
+      await updateOrderItemService({
+        itemId,
+        name,
+        price,
+        quantity,
       });
 
       return res.status(204).send();

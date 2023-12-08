@@ -32,6 +32,7 @@ This project is an API developed as a complement to a basic inventory control sy
   - [ ] Email must contain "@".
   - [ ] Password must be 6 characters or more.
 - [ ] Users cannot make updates to an order if it has been completed.
+- [ ] The user cannot place an order with a deadline before the current day
 - [ ] If the order origin is Customer, the user must fill in the type as Output.
 - [ ] If the payment deadline has passed, the user should see those orders last.
 

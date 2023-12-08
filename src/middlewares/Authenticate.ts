@@ -5,7 +5,6 @@ export async function AuthenticateUser(
   reply: FastifyReply
 ) {
   try {
-    console.log("Está vindo aqui");
     await request.jwtVerify();
   } catch (err) {
     reply.send(err);
