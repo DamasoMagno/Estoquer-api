@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
 
-import { AuthenticateUser } from "../middlewares/Authenticate";
+import { authenticateUser } from "../middlewares/Authenticate";
 import { listOrdersService } from "../services/list-orders-service";
 import { listOrderService } from "../services/list-order-service";
 import { removeOrderService } from "../services/remove-order-service";
@@ -9,7 +9,7 @@ import { createOrderService } from "../services/create-order-service";
 import { updateOrderService } from "../services/update-order-service";
 
 export async function OrderController(app: FastifyInstance) {
-  app.addHook("preHandler", AuthenticateUser);
+  app.addHook("preHandler", authenticateUser);
 
   // /order = List orders
   app.get("/", async (req, res) => {

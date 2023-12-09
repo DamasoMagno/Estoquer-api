@@ -5,6 +5,8 @@ import prisma from "../prisma";
 
 import { createUserService } from "../services/create-user-service";
 import { authenticateUserService } from "../services/authenticate-user-service";
+import { authenticateUser } from "../middlewares/Authenticate";
+import { showUserService } from "../services/show-user-service";
 
 export async function UserController(app: FastifyInstance) {
   // /user/register = Create user
@@ -29,15 +31,23 @@ export async function UserController(app: FastifyInstance) {
   });
 
   // /user = Show users
-  app.get("/", async () => {
-    const users = await prisma.user.findMany({
-      include: {
-        orders: true,
-      },
-    });
+  app.get(
+    "/",
+    {
+      preHandler: authenticateUser,
+    },
+    async (req, res) => {
+      const { user } = req;
 
-    return users;
-  });
+      try {
+        const myUser = await showUserService({ id: user.id });
+
+        return res.status(201).send(myUser);
+      } catch (error) {
+        return res.status(500).send(error);
+      }
+    }
+  );
 
   // /user/auth = Authenticate user
   app.post("/auth", async (req, res) => {
@@ -54,7 +64,9 @@ export async function UserController(app: FastifyInstance) {
         password,
       });
 
-      return res.status(201).jwtSign({ id }, { expiresIn: "10m" });
+      const token = app.jwt.sign({ id }, { expiresIn: "10m" });
+
+      return res.status(201).send({ token });
     } catch (error) {
       return res.status(500).send(error);
     }

@@ -1,15 +1,15 @@
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
 
-import { AuthenticateUser } from "../middlewares/Authenticate";
+import { authenticateUser } from "../middlewares/Authenticate";
 import { createOrderItemService } from "../services/create-order-item-service";
 import { removeOrderItemService } from "../services/remove-order-item-service";
 import { updateOrderItemService } from "../services/update-order-item-service";
 import { listOrderItemsService } from "../services/list-order-items";
 import { listOrderItemService } from "../services/list-order-item";
 
-export async function OrderItemController(app: FastifyInstance) {
-  app.addHook("preHandler", AuthenticateUser);
+export async function ItemController(app: FastifyInstance) {
+  app.addHook("preHandler", authenticateUser);
 
   // /item/items/orderId = List items of order
   app.get("/items/:orderId", async (req, res) => {

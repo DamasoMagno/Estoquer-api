@@ -1,11 +1,10 @@
 import "dotenv/config";
-
 import fastify from "fastify";
 import jwt from "@fastify/jwt";
 const app = fastify();
 
 import { OrderController } from "./controller/Order";
-import { OrderItemController } from "./controller/OrderItem";
+import { ItemController } from "./controller/Item";
 import { UserController } from "./controller/User";
 
 app.register(jwt, {
@@ -16,7 +15,7 @@ app.register(OrderController, {
   prefix: "/order",
 });
 
-app.register(OrderItemController, {
+app.register(ItemController, {
   prefix: "/item",
 });
 
