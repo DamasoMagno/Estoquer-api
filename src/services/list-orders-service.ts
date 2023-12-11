@@ -1,38 +1,30 @@
 import prisma from "../prisma";
 
+export type IOrderType = "INPUT" | "OUTPUT";
+
 interface IOrder {
-  user_id: string;
-  title?: string;
-  type?: "Input" | "Output";
+  customerId: string;
+  product?: string;
+  orderType?: IOrderType;
   sortBy?: "Pendent" | "Finished";
 }
 
 export async function listOrdersService({
-  title,
-  type,
-  user_id,
+  product,
+  orderType,
+  customerId,
   sortBy = "Pendent",
 }: IOrder) {
-  const sortOrdersBy = sortBy === "Pendent" ? "asc" : "desc";
+  const sortOrders = sortBy === "Pendent" ? "asc" : "desc";
 
   const orders = await prisma.order.findMany({
     where: {
-      user_id,
-      title,
-      type,
+      customerId,
+      product,
+      orderType,
     },
     orderBy: {
-      finished: sortOrdersBy,
-    },
-    include: {
-      items: {
-        select: {
-          id: true,
-          name: true,
-          price: true,
-          quantity: true,
-        },
-      },
+      isFinished: sortOrders,
     },
   });
 

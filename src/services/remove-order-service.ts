@@ -1,13 +1,13 @@
 import prisma from "../prisma";
 
-interface IOrderItem {
-  order_id: string;
+interface IOrderId {
+  orderId: string;
 }
 
-export async function removeOrderService({ order_id }: IOrderItem) {
+export async function removeOrderService({ orderId }: IOrderId) {
   const orderNotFound = await prisma.order.findUnique({
     where: {
-      id: order_id,
+      id: orderId,
     },
   });
 
@@ -17,7 +17,7 @@ export async function removeOrderService({ order_id }: IOrderItem) {
 
   await prisma.order.delete({
     where: {
-      id: order_id,
+      id: orderId,
     },
   });
 }

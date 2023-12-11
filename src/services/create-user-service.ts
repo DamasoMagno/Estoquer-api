@@ -14,7 +14,7 @@ export async function createUserService({ email, password }: IUser) {
   });
 
   if (userSameEmail) {
-    throw new Error("Email already exists on system");
+    throw new Error("User already exists on system");
   }
 
   const passwordHashed = await hash(password, 8);

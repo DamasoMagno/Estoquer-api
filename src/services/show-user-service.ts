@@ -1,10 +1,10 @@
 import prisma from "../prisma";
 
-interface IUser {
+interface IUserId {
   id: string;
 }
 
-export async function showUserService({ id }: IUser) {
+export async function showUserService({ id }: IUserId) {
   const users = await prisma.user.findUnique({
     where: {
       id,
@@ -13,14 +13,14 @@ export async function showUserService({ id }: IUser) {
       orders: {
         select: {
           id: true,
-          title: true,
-          type: true,
+          product: true,
+          orderType: true,
           origin: true,
           deadline: true,
-          finished: true,
-          items: true,
+          isFinished: true,
         },
       },
+      stock: true,
     },
   });
 

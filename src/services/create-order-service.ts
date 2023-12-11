@@ -1,37 +1,64 @@
 import prisma from "../prisma";
+import { IOrderOrigin, IOrderType } from "./update-order-service";
 
 interface IOrder {
-  title: string;
-  origin: "Supplier" | "Client";
-  type: "Input" | "Output";
-  deadline: string;
-  user_id: string;
+  product: string;
+  price: number;
+  quantity: number;
+  deadline: Date;
+  origin: IOrderOrigin;
+  orderType: IOrderType;
+  customerId: string;
 }
 
-export async function createOrderService({
-  title,
-  deadline,
-  origin,
-  type,
-  user_id,
-}: IOrder) {
-  if (origin === "Supplier" && type !== "Input") {
-    throw new Error("Category or Origin is incorrect");
-  }
-
-  let deadLineFormattedToDate = new Date(deadline);
-
-  if (deadLineFormattedToDate < new Date()) {
-    throw new Error("You should be able register a posterior date");
-  }
-
+export async function createOrderService({ ...order }: IOrder) {
   await prisma.order.create({
+    data: order,
+  });
+
+  const stock = await prisma.stock.findUnique({
+    where: {
+      product: order.product,
+    },
+    select: {
+      id: true,
+      quantity: true,
+      ownerId: true,
+    },
+  });
+
+  if (!stock && order.orderType === "INPUT") {
+    await prisma.stock.create({
+      data: {
+        product: order.product,
+        ownerId: order.customerId,
+        quantity: order.quantity,
+        status: "AVAILABLE",
+        createdAt: new Date(),
+      },
+    });
+
+    return;
+  }
+
+  const newQuantity =
+    order?.orderType === "INPUT"
+      ? (stock?.quantity ?? 0) + order.quantity
+      : (stock?.quantity ?? 0) - order.quantity;
+
+  if (
+    order.orderType == "OUTPUT" &&
+    (stock?.quantity ?? 0) - order.quantity < 0
+  ) {
+    throw new Error("This quantity is not available on system");
+  }
+
+  await prisma.stock.update({
+    where: {
+      id: stock?.id,
+    },
     data: {
-      title,
-      type,
-      origin,
-      user_id,
-      deadline,
+      quantity: newQuantity,
     },
   });
 }

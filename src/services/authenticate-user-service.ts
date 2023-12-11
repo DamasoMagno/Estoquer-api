@@ -14,13 +14,13 @@ export async function authenticateUserService({ email, password }: IUser) {
   });
 
   if (!userSameEmail) {
-    throw new Error("Email/Password incorrect");
+    throw new Error("Email or Password is incorrect");
   }
 
   const passwordIsValid = await compare(password, userSameEmail.password);
 
   if (!passwordIsValid) {
-    throw new Error("Email/Password incorrect");
+    throw new Error("Email or Password is incorrect");
   }
 
   return userSameEmail;

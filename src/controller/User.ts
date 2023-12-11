@@ -1,15 +1,13 @@
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
 
-import prisma from "../prisma";
+import { authenticateUser } from "../middlewares/Authenticate";
 
 import { createUserService } from "../services/create-user-service";
 import { authenticateUserService } from "../services/authenticate-user-service";
-import { authenticateUser } from "../middlewares/Authenticate";
 import { showUserService } from "../services/show-user-service";
 
 export async function UserController(app: FastifyInstance) {
-  // /user/register = Create user
   app.post("/", async (req, res) => {
     const userSchemaBody = z.object({
       email: z.string().email(),
@@ -30,7 +28,6 @@ export async function UserController(app: FastifyInstance) {
     }
   });
 
-  // /user = Show users
   app.get(
     "/",
     {
@@ -49,7 +46,6 @@ export async function UserController(app: FastifyInstance) {
     }
   );
 
-  // /user/auth = Authenticate user
   app.post("/auth", async (req, res) => {
     const userSchemaBody = z.object({
       email: z.string().email(),

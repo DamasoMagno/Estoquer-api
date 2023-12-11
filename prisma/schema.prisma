@@ -13,31 +13,49 @@ model User {
   email    String  @unique
   password String
   orders   Order[]
+  stock    Stock[]
+}
+
+model Stock {
+  id        String      @id @default(uuid())
+  product   String      @unique
+  ownerId   String
+  quantity  Int
+  status    StockStatus
+  createdAt DateTime
+  owner     User?       @relation(fields: [ownerId], references: [id])
+
+  @@index([ownerId])
 }
 
 model Order {
   id         String      @id @default(uuid())
-  title      String
-  origin     String
-  type       String
-  user_id    String
-  finished   Boolean     @default(false)
+  product    String
+  customerId String
+  price      Int
+  quantity   Int
+  isFinished Boolean     @default(false)
+  origin     OrderOrigin
+  orderType  OrderType
   deadline   DateTime
-  created_at DateTime    @default(now())
-  updated_at DateTime    @updatedAt
-  items      OrderItem[]
-  user       User        @relation(fields: [user_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  customer   User        @relation(fields: [customerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 
-  @@index([user_id])
+  @@index([customerId])
 }
 
-model OrderItem {
-  id       String @id @default(uuid())
-  name     String
-  order_id String
-  price    Int
-  quantity Int
-  order    Order  @relation(fields: [order_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+enum OrderType {
+  INPUT
+  OUTPUT
+}
 
-  @@index([order_id])
+enum OrderOrigin {
+  SUPPLIER
+  CLIENT
+}
+
+enum StockStatus {
+  AVAILABLE
+  NOT_AVAILABLE
 }

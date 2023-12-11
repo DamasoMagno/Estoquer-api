@@ -1,50 +1,42 @@
 import prisma from "../prisma";
 
+export type IOrderType = "INPUT" | "OUTPUT";
+export type IOrderOrigin = "SUPPLIER" | "CLIENT";
+
 interface IOrder {
-  title?: string;
-  origin?: "Supplier" | "Client";
-  type?: "Input" | "Output";
+  orderId: string;
+  product?: string;
+  price?: number;
+  quantity?: number;
   deadline?: Date;
-  finished?: boolean;
-  order_id: string;
+  origin?: IOrderOrigin;
+  orderType?: IOrderType;
+  isFinished?: boolean;
 }
 
-export async function updateOrderService({
-  title,
-  deadline,
-  origin,
-  type,
-  finished,
-  order_id,
-}: IOrder) {
-  if (origin === "Supplier" && type !== "Input") {
-    throw new Error("Category or Origin is incorrect");
+export async function updateOrderService({ orderId, ...order }: IOrder) {
+  if (order.origin === "SUPPLIER" && order.orderType !== "INPUT") {
+    throw new Error(`Type ${order.orderType} is not valid to ${origin}`);
   }
 
-  const orderIsFinished = await prisma.order.findUnique({
+  const checkOrderExists = await prisma.order.findUnique({
     where: {
-      id: order_id,
+      id: orderId,
     },
   });
 
-  if (!orderIsFinished) {
+  if (!checkOrderExists) {
     throw new Error("This order's removed from system");
   }
 
-  if (orderIsFinished.finished) {
+  if (checkOrderExists.isFinished) {
     throw new Error("This order's finished");
   }
 
   await prisma.order.update({
     where: {
-      id: order_id,
+      id: orderId,
     },
-    data: {
-      title,
-      deadline,
-      origin,
-      type,
-      finished,
-    },
+    data: order,
   });
 }

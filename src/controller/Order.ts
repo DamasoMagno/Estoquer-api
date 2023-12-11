@@ -2,8 +2,9 @@ import { FastifyInstance } from "fastify";
 import { z } from "zod";
 
 import { authenticateUser } from "../middlewares/Authenticate";
+
 import { listOrdersService } from "../services/list-orders-service";
-import { listOrderService } from "../services/list-order-service";
+import { showOrderService } from "../services/show-order-service";
 import { removeOrderService } from "../services/remove-order-service";
 import { createOrderService } from "../services/create-order-service";
 import { updateOrderService } from "../services/update-order-service";
@@ -11,22 +12,21 @@ import { updateOrderService } from "../services/update-order-service";
 export async function OrderController(app: FastifyInstance) {
   app.addHook("preHandler", authenticateUser);
 
-  // /order = List orders
   app.get("/", async (req, res) => {
     const { user } = req;
 
     const orderFiltersSchema = z.object({
-      title: z.string().optional(),
-      type: z.enum(["Input", "Output"]).optional(),
+      product: z.string().optional(),
+      orderType: z.enum(["INPUT", "OUTPUT"]).optional(),
     });
 
     try {
-      const { title, type } = orderFiltersSchema.parse(req.query);
+      const { product, orderType } = orderFiltersSchema.parse(req.query);
 
       const orders = await listOrdersService({
-        title,
-        type,
-        user_id: user.id,
+        product,
+        orderType,
+        customerId: user.id,
       });
 
       return orders;
@@ -35,8 +35,9 @@ export async function OrderController(app: FastifyInstance) {
     }
   });
 
-  // /order/:orderId = Show order
   app.get("/:orderId", async (req, res) => {
+    const { user } = req;
+
     const orderIdSchema = z.object({
       orderId: z.string().uuid(),
     });
@@ -44,8 +45,9 @@ export async function OrderController(app: FastifyInstance) {
     try {
       const { orderId } = orderIdSchema.parse(req.params);
 
-      const orders = await listOrderService({
-        order_id: orderId,
+      const orders = await showOrderService({
+        orderId,
+        userId: user.id,
       });
 
       return orders;
@@ -54,26 +56,32 @@ export async function OrderController(app: FastifyInstance) {
     }
   });
 
-  // /order = Create order
   app.post("/", async (req, res) => {
     const { user } = req;
 
     const orderSchemaBody = z.object({
-      title: z.string(),
-      origin: z.enum(["Supplier", "Client"]),
-      type: z.enum(["Input", "Output"]),
+      product: z.string(),
+      origin: z.enum(["SUPPLIER", "CLIENT"]),
+      orderType: z.enum(["INPUT", "OUTPUT"]),
       deadline: z.string(),
+      price: z.number(),
+      quantity: z.number(),
     });
 
     try {
-      const { title, type, origin, deadline } = orderSchemaBody.parse(req.body);
+      const { product, orderType, origin, deadline, price, quantity } =
+        orderSchemaBody.parse(req.body);
+
+      const formatDeadline = new Date(deadline);
 
       await createOrderService({
-        title,
-        deadline,
+        product,
+        deadline: formatDeadline,
         origin,
-        type,
-        user_id: user.id,
+        price,
+        quantity,
+        orderType,
+        customerId: user.id,
       });
 
       return res.status(201).send();
@@ -82,12 +90,11 @@ export async function OrderController(app: FastifyInstance) {
     }
   });
 
-  // /order/:orderId = Update order
   app.patch("/:orderId", async (req, res) => {
     const orderSchemaBody = z.object({
-      title: z.string().optional(),
-      origin: z.enum(["Supplier", "Client"]).optional(),
-      type: z.enum(["Input", "Output"]).optional(),
+      product: z.string().optional(),
+      origin: z.enum(["SUPPLIER", "CLIENT"]).optional(),
+      orderType: z.enum(["INPUT", "OUTPUT"]).optional(),
       deadline: z.date().optional(),
       finished: z.boolean().optional(),
     });
@@ -97,18 +104,18 @@ export async function OrderController(app: FastifyInstance) {
     });
 
     try {
-      const { type, deadline, finished, origin, title } = orderSchemaBody.parse(
-        req.body
-      );
+      const { orderType, deadline, finished, origin, product } =
+        orderSchemaBody.parse(req.body);
+
       const { orderId } = orderIdSchema.parse(req.params);
 
       await updateOrderService({
-        type,
+        product,
+        orderType,
         deadline,
-        finished,
+        isFinished: finished,
         origin,
-        title,
-        order_id: orderId,
+        orderId,
       });
 
       return res.status(204).send();
@@ -117,7 +124,6 @@ export async function OrderController(app: FastifyInstance) {
     }
   });
 
-  // /order/:orderId = Delete order
   app.delete("/:orderId", async (req, res) => {
     const orderIdSchema = z.object({
       orderId: z.string().uuid(),
@@ -126,7 +132,7 @@ export async function OrderController(app: FastifyInstance) {
     try {
       const { orderId } = orderIdSchema.parse(req.params);
 
-      await removeOrderService({ order_id: orderId });
+      await removeOrderService({ orderId: orderId });
 
       return res.status(204).send();
     } catch (error) {
