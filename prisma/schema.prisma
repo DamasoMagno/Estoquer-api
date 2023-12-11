@@ -17,13 +17,12 @@ model User {
 }
 
 model Stock {
-  id        String      @id @default(uuid())
-  product   String      @unique
+  id        String   @id @default(uuid())
+  product   String   @unique
   ownerId   String
   quantity  Int
-  status    StockStatus
-  createdAt DateTime
-  owner     User?       @relation(fields: [ownerId], references: [id])
+  createdAt DateTime @default(now())
+  owner     User?    @relation(fields: [ownerId], references: [id])
 
   @@index([ownerId])
 }
@@ -53,9 +52,4 @@ enum OrderType {
 enum OrderOrigin {
   SUPPLIER
   CLIENT
-}
-
-enum StockStatus {
-  AVAILABLE
-  NOT_AVAILABLE
 }

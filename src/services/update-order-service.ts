@@ -1,9 +1,7 @@
+import { IOrderOrigin, IOrderType } from "../interface";
 import prisma from "../prisma";
 
-export type IOrderType = "INPUT" | "OUTPUT";
-export type IOrderOrigin = "SUPPLIER" | "CLIENT";
-
-interface IOrder {
+interface IOrderUpdate {
   orderId: string;
   product?: string;
   price?: number;
@@ -14,7 +12,7 @@ interface IOrder {
   isFinished?: boolean;
 }
 
-export async function updateOrderService({ orderId, ...order }: IOrder) {
+export async function updateOrderService({ orderId, ...order }: IOrderUpdate) {
   if (order.origin === "SUPPLIER" && order.orderType !== "INPUT") {
     throw new Error(`Type ${order.orderType} is not valid to ${origin}`);
   }

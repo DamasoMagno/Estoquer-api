@@ -17,15 +17,19 @@ export async function OrderController(app: FastifyInstance) {
 
     const orderFiltersSchema = z.object({
       product: z.string().optional(),
+      sort: z
+        .enum(["price", "quantity", "deadline", "origin", "orderType"])
+        .optional(),
       orderType: z.enum(["INPUT", "OUTPUT"]).optional(),
+      origin: z.enum(["SUPPLIER", "CLIENT"]).optional(),
     });
 
     try {
-      const { product, orderType } = orderFiltersSchema.parse(req.query);
+      const { product, sort } = orderFiltersSchema.parse(req.query);
 
       const orders = await listOrdersService({
+        sort,
         product,
-        orderType,
         customerId: user.id,
       });
 

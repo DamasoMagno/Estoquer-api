@@ -1,10 +1,7 @@
 import { compare } from "bcryptjs";
-import prisma from "../prisma";
 
-interface IUser {
-  email: string;
-  password: string;
-}
+import prisma from "../prisma";
+import { IUser } from "../interface";
 
 export async function authenticateUserService({ email, password }: IUser) {
   const userSameEmail = await prisma.user.findFirst({

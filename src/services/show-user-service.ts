@@ -10,16 +10,7 @@ export async function showUserService({ id }: IUserId) {
       id,
     },
     include: {
-      orders: {
-        select: {
-          id: true,
-          product: true,
-          orderType: true,
-          origin: true,
-          deadline: true,
-          isFinished: true,
-        },
-      },
+      orders: true,
       stock: true,
     },
   });

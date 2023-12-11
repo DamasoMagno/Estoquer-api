@@ -1,13 +1,13 @@
 import prisma from "../prisma";
 
 interface IOrderId {
-  orderId: string;
+  stockId: string;
 }
 
-export async function removeOrderService({ orderId }: IOrderId) {
-  const orderNotFound = await prisma.order.findUnique({
+export async function removeStockService({ stockId }: IOrderId) {
+  const orderNotFound = await prisma.stock.findUnique({
     where: {
-      id: orderId,
+      id: stockId,
     },
   });
 
@@ -15,9 +15,9 @@ export async function removeOrderService({ orderId }: IOrderId) {
     throw new Error("Order removed or not found on system");
   }
 
-  await prisma.order.delete({
+  await prisma.stock.delete({
     where: {
-      id: orderId,
+      id: stockId,
     },
   });
 }

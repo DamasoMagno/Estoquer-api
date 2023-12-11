@@ -10,9 +10,10 @@ This project is an API developed as a complement to a basic inventory control sy
 - [ ] Users can view all orders.
 - [ ] Users should be able to edit an order.
 - [ ] Users should be able to remove an order.
-- [ ] Users can view order by:
+- [ ] Users can view order sorted by:
   - [ ] Origin
   - [ ] Type
+  - [ ] Finished
 - [ ] Users should register the following fields for each order:
   - [ ] Name
   - [ ] Price

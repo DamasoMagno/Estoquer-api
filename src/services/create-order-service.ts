@@ -1,15 +1,5 @@
 import prisma from "../prisma";
-import { IOrderOrigin, IOrderType } from "./update-order-service";
-
-interface IOrder {
-  product: string;
-  price: number;
-  quantity: number;
-  deadline: Date;
-  origin: IOrderOrigin;
-  orderType: IOrderType;
-  customerId: string;
-}
+import { IOrder } from "../interface";
 
 export async function createOrderService({ ...order }: IOrder) {
   await prisma.order.create({
@@ -33,7 +23,6 @@ export async function createOrderService({ ...order }: IOrder) {
         product: order.product,
         ownerId: order.customerId,
         quantity: order.quantity,
-        status: "AVAILABLE",
         createdAt: new Date(),
       },
     });
@@ -50,7 +39,9 @@ export async function createOrderService({ ...order }: IOrder) {
     order.orderType == "OUTPUT" &&
     (stock?.quantity ?? 0) - order.quantity < 0
   ) {
-    throw new Error("This quantity is not available on system");
+    throw new Error(
+      `The quantity required of ${order.product} is not available on system`
+    );
   }
 
   await prisma.stock.update({
